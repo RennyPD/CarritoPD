@@ -1,0 +1,208 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<h1 class="mt-4">Dashboard</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item active">Dashboard</li>
+</ol>
+
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-success text-white mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-9">
+                        <h6>Cantidad clientes</h6>
+                        <h6 id="totalClientes">0</h6>
+                    </div>
+                    <div class="col-sm-3">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-warning text-white mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-9">
+                        <h6>Cantidad ventas</h6>
+                        <h6 id="totalVentas">0</h6>
+                    </div>
+                    <div class="col-sm-3">
+                        <i class="fas fa-shopping-bag fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-secondary text-white mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-9">
+                        <h6>Cantidad productos</h6>
+                        <h6 id="totalProductos">0</h6>
+                    </div>
+                    <div class="col-sm-3">
+                        <i class="fas fa-boxes fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-tags me-1"></i>
+        Historial de ventas
+    </div>
+    <div class="card-body">
+
+        <form action="@Url.Action("ExportarVenta","Home")" method="post">
+
+            <div class="row align-items-end">
+
+                <div class="col-sm-2">
+                    <div class="mb-2">
+                        <label class="form-label">Fecha fin: </label>
+                        <input class="form-control" type="text" id="txtFechaInicio" name="fechaInicio" />
+                    </div>
+                </div>
+
+                <div class="col-sm-2">
+                    <div class="mb-2">
+                        <label class="form-label">Fecha inicio: </label>
+                        <input class="form-control" type="text" id="txtFechaFin" name="fechaFin" />
+                    </div>
+                </div>
+
+                <div class="col-sm-2">
+                    <div class="mb-2">
+                        <label class="form-label">Id Transaccion: </label>
+                        <input class="form-control" type="text" id="txtIdTransaccion" name="IdTransaccion" />
+                    </div>
+                </div>
+
+                <div class="col-sm-2">
+                    <div class="d-grid mb-2">
+                        <button class="btn btn-primary" id="btnBuscar" type="button"><i class="fas fa-search"></i>Buscar</button>
+                    </div>
+                </div>
+
+                <div class="col-sm-2">
+                    <div class="d-grid mb-2">
+                        <button class="btn btn-success" id="btnExportar" type="submit"><i class="fas fa-file-excel"></i>Exportar</button>
+                    </div>
+                </div>
+            </div>
+
+
+        </form>
+
+        <hr />
+
+        <div class="row">
+
+
+            <div class="col-sm-12">
+                <table id="tabla" class="display cell-border" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Fecha venta</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Total</th>
+                            <th>ID Transaccion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+
+        $("#txtFechaInicio").datepicker({ dateFormat: 'dd/mm/yy' }).datepicker('setDate', new Date());
+        $("#txtFechaFin").datepicker({ dateFormat: 'dd/mm/yy' }).datepicker('setDate', new Date());
+
+         jQuery.ajax({
+         url: '@Url.Action("VistaDashboard", "Home")',
+         type: "GET",
+         dataType: "json",
+         contentType: "application/json; charset=utf-8",
+         success: function (data) {
+
+             var objeto = data.resultado;
+
+                 $("#totalClientes").text(objeto.TotalClientes),
+                 $("#totalVentas").text(objeto.TotalVentas),
+                 $("#totalProductos").text(objeto.TotalProductos)
+
+            }
+         });
+
+        var Url = '@Url.Action("ListaReporte", "Home")' +
+            "?fechaInicio=" + $("#txtFechaInicio").val() +
+            "&fechaFin=" + $("#txtFechaInicio").val() +
+            "&idTransaccion=" + $("#txtIdTransaccion").val()
+
+
+         tabladata = $("#tabla").DataTable({
+
+            responsive: true,
+            ordering: false,
+            "ajax": {
+
+                 url: Url,
+                 type: "GET",
+                 dataType: "json"
+
+            },
+            "columns": [
+                { "data":"FechaVenta"},
+                { "data": "Cliente" },
+                { "data": "Producto" },
+                { "data": "Precio" },
+                { "data": "Cantidad" },
+                { "data": "Total" },
+                { "data": "IdTransaccion" },
+
+            ],
+            "language": {
+                url: '//cdn.datatables.net/plug-ins/2.1.8/i18n/es-ES.json',
+            }
+
+         });
+
+        $("#btnBuscar").on("Click", function () {
+
+                var nueva_url = '@Url.Action("ListaReporte", "Home")' +
+                "?fechaInicio=" + $("#txtFechaInicio").val() +
+                "&fechaFin=" + $("#txtFechaInicio").val() +
+                "&idTransaccion=" + $("#txtIdTransaccion").val()
+
+            tabladata.ajax.url(nueva_url).load();
+
+        })
+
+    </script>
+
+    
+
+
+
+}
